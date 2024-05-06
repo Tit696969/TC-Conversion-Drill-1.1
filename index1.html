@@ -1,0 +1,182 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TC Conversion Drill 1.1</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    text-align: center;
+  }
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+  }
+  input[type="number"] {
+    width: 100px;
+    padding: 10px;
+    margin: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+  #userInput {
+    border: 1px solid #ccc;
+  }
+  #result {
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  #performanceOverview {
+    display: none;
+  }
+  #accuracy {
+    font-weight: bold;
+    margin-top: 20px;
+  }
+  #speed {
+    font-weight: bold;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>TC Conversion Drill 1.1</h2>
+  <div id="startScreen">
+    <button id="startButton" onclick="startCountdown()">Start</button>
+  </div>
+  <div id="countdownScreen" style="display: none;">
+    <div id="countdown">3</div>
+  </div>
+  <div id="gameScreen" style="display: none;">
+    <div>
+      <label for="runningCount">Running Count:</label>
+      <input type="number" id="runningCount" disabled>
+    </div>
+    <div id="halfDecksRemainingDiv" style="display: none;">
+      <label for="halfDecksRemaining">Half Decks Remaining:</label>
+      <input type="number" id="halfDecksRemaining" disabled>
+    </div>
+    <div id="quarterDecksRemainingDiv" style="display: none;">
+      <label for="quarterDecksRemaining">Quarter Decks Remaining:</label>
+      <input type="number" id="quarterDecksRemaining" disabled>
+    </div>
+    <div id="wholeDecksRemainingDiv" style="display: none;">
+      <label for="wholeDecksRemaining">Whole Decks Remaining:</label>
+      <input type="number" id="wholeDecksRemaining" disabled>
+    </div>
+    <div>
+      <label for="userInput">User Input:</label>
+      <input type="number" id="userInput" onkeydown="if(event.keyCode===13) checkAnswer()">
+      <button onclick="checkAnswer()">Check</button>
+    </div>
+    <div id="result"></div>
+    <div id="performanceButton">
+      <button onclick="updatePerformance()">Performance</button>
+    </div>
+    <div id="performanceOverview">
+      <div id="accuracy"></div>
+      <div id="speed"></div>
+    </div>
+    <button onclick="restartGame()">Restart</button>
+    <button onclick="returnToMainPage()">Return to Main Page</button> <!-- New button -->
+  </div>
+</div>
+
+<script>
+  let runningCount, halfDecksRemaining, quarterDecksRemaining, wholeDecksRemaining, correctAnswer, roundsPlayed = 0, correctCount = 0, totalTime = 0, roundStartTime = 0, countdownStartTime = 0;
+  let countdown = 3; // Move the countdown variable outside the startCountdown function
+
+  function startCountdown() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('countdownScreen').style.display = 'block';
+    countdownStartTime = performance.now(); // Record the start time when the countdown begins
+    document.getElementById('countdown').textContent = countdown; // Display initial countdown value
+    const countdownInterval = setInterval(() => {
+      if (countdown === 0) {
+        clearInterval(countdownInterval);
+        document.getElementById('countdownScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'block';
+        startGame();
+      } else {
+        countdown--; // Move the countdown decrement inside the interval function
+        document.getElementById('countdown').textContent = countdown; // Display updated countdown value
+      }
+    }, 1000);
+  }
+
+  function startGame() {
+    runningCount = Math.floor(Math.random() * 81) - 40;
+    halfDecksRemaining = Math.floor(Math.random() * 16) + 1;
+    correctAnswer = Math.floor(runningCount * 2 / halfDecksRemaining);
+    document.getElementById('runningCount').value = runningCount;
+    document.getElementById('halfDecksRemainingDiv').style.display = 'block';
+    document.getElementById('halfDecksRemaining').value = halfDecksRemaining;
+    roundStartTime = performance.now();
+  }
+
+  function checkAnswer() {
+    let userInput = parseInt(document.getElementById('userInput').value);
+    let resultElement = document.getElementById('result');
+    if (userInput === correctAnswer) {
+      resultElement.textContent = 'Correct!';
+      resultElement.style.color = 'green';
+      correctCount++;
+    } else {
+      resultElement.textContent = `Wrong! The correct answer is ${correctAnswer}`;
+      resultElement.style.color = 'red';
+    }
+    roundsPlayed++;
+    setTimeout(function() {
+      resultElement.textContent = '';
+      resultElement.style.color = '';
+      runningCount = Math.floor(Math.random() * 81) - 40;
+      halfDecksRemaining = Math.floor(Math.random() * 16) + 1;
+      correctAnswer = Math.floor(runningCount * 2 / halfDecksRemaining);
+      document.getElementById('runningCount').value = runningCount;
+      document.getElementById('halfDecksRemaining').value = halfDecksRemaining;
+      document.getElementById('userInput').value = '';
+      roundStartTime = performance.now();
+    }, 1000);
+  }
+
+  function updatePerformance() {
+    totalTime += performance.now() - countdownStartTime; // Include the time from beginning to the end of the countdown
+    let accuracy = (correctCount / roundsPlayed) * 100;
+    let speed = totalTime / roundsPlayed / 1000; // Convert milliseconds to seconds
+    
+    // Display accuracy and speed per round
+    document.getElementById('accuracy').textContent = `Accuracy: ${accuracy.toFixed(2)}%`;
+    document.getElementById('speed').textContent = `Speed per Round: ${speed.toFixed(2)} seconds`;
+
+    // Display the performance overview
+    document.getElementById('performanceOverview').style.display = 'block';
+  }
+
+  function restartGame() {
+    document.getElementById('gameScreen').style.display = 'none';
+    document.getElementById('startScreen').style.display = 'block';
+    document.getElementById('performanceOverview').style.display = 'none'; // Hide performance overview
+    document.getElementById('accuracy').textContent = ''; // Clear accuracy text
+    document.getElementById('speed').textContent = ''; // Clear speed text
+    roundsPlayed = 0;
+    correctCount = 0;
+    totalTime = 0;
+    countdown = 3; // Reset countdown value
+  }
+
+  function returnToMainPage() {
+    // Redirect to the main page
+    window.location.href = 'index.html';
+  }
+</script>
+</body>
+</html>
